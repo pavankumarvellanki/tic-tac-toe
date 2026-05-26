@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe - AI Challenge</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 Tic Tac Toe</h1>
+            <p class="subtitle">Challenge the AI</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-box player-stats">
+                <div class="stat-label">You (X)</div>
+                <div class="stat-value" id="playerScore">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Draw</div>
+                <div class="stat-value" id="drawScore">0</div>
+            </div>
+            <div class="stat-box ai-stats">
+                <div class="stat-label">AI (O)</div>
+                <div class="stat-value" id="aiScore">0</div>
+            </div>
+        </div>
+
+        <div class="game-container">
+            <div class="board" id="board">
+                <div class="cell" data-index="0"></div>
+                <div class="cell" data-index="1"></div>
+                <div class="cell" data-index="2"></div>
+                <div class="cell" data-index="3"></div>
+                <div class="cell" data-index="4"></div>
+                <div class="cell" data-index="5"></div>
+                <div class="cell" data-index="6"></div>
+                <div class="cell" data-index="7"></div>
+                <div class="cell" data-index="8"></div>
+            </div>
+        </div>
+
+        <div class="game-status">
+            <div class="status-text" id="status">Your Turn!</div>
+        </div>
+
+        <div class="button-group">
+            <button class="btn btn-primary" id="resetBtn">New Game</button>
+            <button class="btn btn-secondary" id="resetScoreBtn">Reset Score</button>
+        </div>
+
+        <div class="difficulty">
+            <label for="difficulty">Difficulty:</label>
+            <select id="difficulty">
+                <option value="hard">Hard (Unbeatable)</option>
+                <option value="medium">Medium (Smart)</option>
+                <option value="easy">Easy (Random)</option>
+            </select>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
