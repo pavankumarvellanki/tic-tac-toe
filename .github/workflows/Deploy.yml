@@ -1,0 +1,41 @@
+name: Build and Deploy to Azure
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  ACR_NAME: tictactoeacr123
+  IMAGE_NAME: tic-tac-toe
+  LOGIN_SERVER: tictactoeacr123-bscedmgpcadwdkga.azurecr.io
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Azure Login
+      uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Login to ACR
+      run: az acr login --name $ACR_NAME
+
+    - name: Build Docker image
+      run: |
+        docker build -t ${{ env.LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }} .
+
+    - name: Push Docker image
+      run: |
+        docker push ${{ env.LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: YOUR_WEBAPP_NAME
+        images: ${{ env.LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
