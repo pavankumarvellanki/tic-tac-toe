@@ -15,7 +15,7 @@ A beautiful, interactive Tic Tac Toe game with a challenging AI opponent powered
 
 ## How to Play 🎯
 
-1. **Open the Game**: Simply open `index.html` in your web browser
+1. **Open the Game**: Simply open `index.html` in your web browser.
 2. **Make Your Move**: Click any empty cell to place your X
 3. **Beat the AI**: Try to get three in a row while blocking the AI from doing the same
 4. **Track Score**: Your scores are automatically saved between sessions
