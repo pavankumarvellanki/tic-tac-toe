@@ -1,4 +1,4 @@
-name: Build and Deploy to Azure
+name: Build and Deploy to Azure Container App
 
 on:
   push:
@@ -9,6 +9,8 @@ env:
   ACR_NAME: tictactoeacr123
   IMAGE_NAME: tic-tac-toe
   LOGIN_SERVER: tictactoeacr123-bscedmgpcadwdkga.azurecr.io
+  RESOURCE_GROUP: tic-tac-toe-rg        # replace with your resource group
+  CONTAINER_APP_NAME: tic-tac-toe-app   # replace with your container app name
 
 jobs:
   build-and-deploy:
@@ -34,8 +36,9 @@ jobs:
       run: |
         docker push ${{ env.LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-    - name: Deploy to Azure Web App
-      uses: azure/webapps-deploy@v3
-      with:
-        app-name: tic-tac-toe-app
-        images: ${{ env.LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+    - name: Deploy to Azure Container App
+      run: |
+        az containerapp update \
+          --name ${{ env.CONTAINER_APP_NAME }} \
+          --resource-group ${{ env.RESOURCE_GROUP }} \
+          --image ${{ env.LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
