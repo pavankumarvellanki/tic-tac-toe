@@ -10,7 +10,7 @@ A beautiful, interactive Tic Tac Toe game with a challenging AI opponent powered
   - **Medium**: Smart AI that makes optimal moves 70% of the time
   - **Easy**: Random move selection for casual play
 - **Score Tracking** - Keep track of wins, losses, and draws (persisted in browser)
-- **Responsive Design** - Works on desktop and mobile devices
+- **Responsive Design** - Works on desktop and mobile devices.
 - **Smooth Animations** - Pop-in effects for moves and interactive feedback
 
 ## How to Play 🎯
