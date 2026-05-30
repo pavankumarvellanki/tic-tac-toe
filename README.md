@@ -93,4 +93,6 @@ Built with ❤️ as a demonstration of game AI and modern web design.
 
 ---
 
-Enjoy the challenge! 🎮✨
+Enjoy the challenge! 🎮✨.
+
+Thanks for the Support.
