@@ -15,7 +15,7 @@
 
         <div class="stats">
             <div class="stat-box player-stats">
-                <div class="stat-label">You (X)</div>
+                <div class="stat-label">Player X</div>
                 <div class="stat-value" id="playerScore">0</div>
             </div>
             <div class="stat-box">
@@ -23,9 +23,18 @@
                 <div class="stat-value" id="drawScore">0</div>
             </div>
             <div class="stat-box ai-stats">
-                <div class="stat-label">AI (O)</div>
+                <div class="stat-label" id="playerOLabel">AI (O)</div>
                 <div class="stat-value" id="aiScore">0</div>
             </div>
+        </div>
+
+        <div class="mode">
+            <label for="gameMode">Mode:</label>
+            <select id="gameMode">
+                <option value="ai">Play vs AI</option>
+                <option value="multiplayer">Local Multiplayer</option>
+                <option value="remote">Remote Multiplayer</option>
+            </select>
         </div>
 
         <div class="game-container">
@@ -49,6 +58,23 @@
         <div class="button-group">
             <button class="btn btn-primary" id="resetBtn">New Game</button>
             <button class="btn btn-secondary" id="resetScoreBtn">Reset Score</button>
+        </div>
+
+        <div class="remote-panel hidden" id="remotePanel">
+            <div class="network-row">
+                <label for="serverUrl">WebSocket Server</label>
+                <input id="serverUrl" type="text" value="ws://localhost:3000" placeholder="ws://server.example:3000">
+            </div>
+            <div class="network-row">
+                <label for="roomIdInput">Room ID</label>
+                <input id="roomIdInput" type="text" placeholder="Enter room code">
+            </div>
+            <div class="button-group network-actions">
+                <button class="btn btn-primary" id="createRoomBtn">Create Room</button>
+                <button class="btn btn-secondary" id="joinRoomBtn">Join Room</button>
+            </div>
+            <div class="connection-status" id="connectionStatus">Not connected</div>
+            <div class="room-note">Use a public WebSocket address to play from remote locations.</div>
         </div>
 
         <div class="difficulty">

@@ -4,38 +4,72 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 env:
   ACR_NAME: tictactoeacr123
   IMAGE_NAME: tic-tac-toe
   LOGIN_SERVER: tictactoeacr123-bscedmgpcadwdkga.azurecr.io
+  REGISTRY: tictactoeacr123.azurecr.io
+  WEB_APP_NAME: tic-tac-toe-app
 
 jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./tic-tac-toe
+
+      - name: Check for syntax errors
+        run: node --check server.js && node --check script.js
+        working-directory: ./tic-tac-toe
+
   build-and-deploy:
     runs-on: ubuntu-latest
+    needs: lint-and-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Azure Login
-      uses: azure/login@v2
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Login to ACR
-      run: az acr login --name $ACR_NAME
+      - name: Login to ACR
+        run: az acr login --name ${{ env.ACR_NAME }}
 
-    - name: Build Docker image
-      run: |
-        docker build -t ${{ env.LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }} .
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} .
+          docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+        working-directory: ./tic-tac-toe
 
-    - name: Push Docker image
-      run: |
-        docker push ${{ env.LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+      - name: Push Docker image to ACR
+        run: |
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
-    - name: Deploy to Azure Web App
-      uses: azure/webapps-deploy@v3
-      with:
-        app-name: YOUR_WEBAPP_NAME
-        images: ${{ env.LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.WEB_APP_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Logout from Azure
+        if: always()
+        run: az logout
+

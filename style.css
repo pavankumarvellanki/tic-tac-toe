@@ -328,15 +328,62 @@ h1 {
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-@media (max-width: 600px) {
-    .container {
+    .hidden {
+        display: none !important;
+    }
+
+    .remote-panel {
+        margin-top: 20px;
         padding: 20px;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        background: #fbfbff;
     }
 
-    h1 {
-        font-size: 2em;
+    .network-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
     }
 
+    .network-row label {
+        min-width: 110px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .network-row input {
+        flex: 1;
+        min-width: 180px;
+        padding: 12px 14px;
+        border-radius: 10px;
+        border: 2px solid #667eea;
+        background: white;
+        color: #333;
+        font-weight: 500;
+    }
+
+    .network-actions {
+        gap: 12px;
+    }
+
+    .connection-status {
+        margin-top: 12px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: #f5f7fa;
+        border: 1px solid #d1d5db;
+        color: #333;
+        font-size: 0.95em;
+    }
+
+    .room-note {
+        margin-top: 10px;
+        color: #555;
+        font-size: 0.9em;
+    }
     .cell {
         width: 70px;
         height: 70px;
