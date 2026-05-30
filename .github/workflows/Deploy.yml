@@ -9,7 +9,7 @@ env:
   ACR_NAME: tictactoeacr123
   IMAGE_NAME: tic-tac-toe
   LOGIN_SERVER: tictactoeacr123-bscedmgpcadwdkga.azurecr.io
-  RESOURCE_GROUP: tic-tac-toe-rg        # replace with your resource group
+  RESOURCE_GROUP: rg-tic-tac-tor        # replace with your resource group
   CONTAINER_APP_NAME: tic-tac-toe-app   # replace with your container app name
 
 jobs:
