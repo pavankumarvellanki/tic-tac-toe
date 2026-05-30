@@ -1,4 +1,4 @@
-* {
+﻿* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -347,4 +347,137 @@ h1 {
         gap: 6px;
         padding: 6px;
     }
+}
+
+.game-mode,
+.difficulty {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.game-mode select,
+.difficulty select {
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+.game-mode {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.game-mode label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.game-mode select {
+    width: 220px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+}
+
+.difficulty,
+.game-mode {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.difficulty label,
+.game-mode label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #333;
+}
+
+.difficulty select,
+.game-mode select {
+    width: 250px;
+    padding: 10px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.difficulty select:hover,
+.game-mode select:hover {
+    border-color: #4CAF50;
+}
+
+.difficulty select:focus,
+.game-mode select:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
+
+.multiplayer-panel {
+    margin-top: 20px;
+    padding: 18px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #f8f9ff 0%, #e8efff 100%);
+    border: 1px solid rgba(102, 126, 234, 0.18);
+}
+
+.remote-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.room-input {
+    flex: 1 1 150px;
+    max-width: 180px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 1em;
+    background: white;
+}
+
+.room-info,
+.connection-status,
+.player-badge {
+    text-align: center;
+    margin-top: 10px;
+    font-weight: 600;
+    color: #333;
+}
+
+.connection-status {
+    padding: 10px 14px;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+}
+
+.connection-status.info {
+    background: #eef4ff;
+    border: 1px solid #b7d4ff;
+    color: #2b4a95;
+}
+
+.connection-status.success {
+    background: #e6fff4;
+    border: 1px solid #8de3b3;
+    color: #0f5c2e;
+}
+
+.connection-status.warning {
+    background: #fff7e6;
+    border: 1px solid #ffdd9d;
+    color: #7a5500;
+}
+
+.connection-status.error {
+    background: #ffe9e9;
+    border: 1px solid #ffb3b3;
+    color: #8b1c1c;
 }

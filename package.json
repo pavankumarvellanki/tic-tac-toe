@@ -1,0 +1,12 @@
+﻿{
+  "name": "tic-tac-toe-server",
+  "version": "1.0.0",
+  "description": "Tic Tac Toe game with remote multiplayer.",
+  "main": "server.js",
+  "scripts": {
+    "start-server": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.21.0"
+  }
+}

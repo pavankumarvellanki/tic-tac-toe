@@ -1,16 +1,16 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tic Tac Toe - AI Challenge</title>
+    <title>Tic Tac Toe - AI & Remote Play</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>🎮 Tic Tac Toe</h1>
-            <p class="subtitle">Challenge the AI</p>
+            <p class="subtitle">Play vs AI or remote opponent</p>
         </div>
 
         <div class="stats">
@@ -46,6 +46,17 @@
             <div class="status-text" id="status">Your Turn!</div>
         </div>
 
+        <div class="multiplayer-panel" id="multiplayerPanel" style="display: none;">
+            <div class="remote-row">
+                <button class="btn btn-primary" id="createRoomBtn">Create Room</button>
+                <input class="room-input" id="roomCodeInput" placeholder="Room code" maxlength="6">
+                <button class="btn btn-secondary" id="joinRoomBtn">Join Room</button>
+            </div>
+            <div class="room-info" id="roomInfo">Room code: —</div>
+            <div class="connection-status info" id="connectionStatus">Disconnected</div>
+            <div class="player-badge" id="playerBadge"></div>
+        </div>
+
         <div class="button-group">
             <button class="btn btn-primary" id="resetBtn">New Game</button>
             <button class="btn btn-secondary" id="resetScoreBtn">Reset Score</button>
@@ -57,6 +68,14 @@
                 <option value="hard">Hard (Unbeatable)</option>
                 <option value="medium">Medium (Smart)</option>
                 <option value="easy">Easy (Random)</option>
+            </select>
+        </div>
+
+        <div class="game-mode">
+            <label for="gameMode">Game Mode:</label>
+            <select id="gameMode">
+                <option value="ai">Play vs AI</option>
+                <option value="remote">Remote Multiplayer</option>
             </select>
         </div>
     </div>

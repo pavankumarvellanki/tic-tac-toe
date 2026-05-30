@@ -1,34 +1,246 @@
-class TicTacToe {
+﻿class TicTacToe {
     constructor() {
-        this.board = ['', '', '', '', '', '', '', '', ''];
+        this.board = Array(9).fill('');
         this.currentPlayer = 'X';
         this.gameActive = true;
         this.difficulty = 'hard';
         this.scores = { player: 0, ai: 0, draw: 0 };
+        this.gameMode = 'ai';
+        this.socket = null;
+        this.mySymbol = null;
+        this.currentTurn = 'X';
+        this.isConnected = false;
+        this.roomCode = '';
+        this.movePending = false;
         this.loadScores();
-        this.initializeGame();
+        document.addEventListener('DOMContentLoaded', () => this.initializeGame());
     }
 
     initializeGame() {
-        const cells = document.querySelectorAll('.cell');
-        cells.forEach((cell, index) => {
+        this.cells = document.querySelectorAll('.cell');
+        this.createRoomBtn = document.getElementById('createRoomBtn');
+        this.joinRoomBtn = document.getElementById('joinRoomBtn');
+        this.roomCodeInput = document.getElementById('roomCodeInput');
+        this.roomInfo = document.getElementById('roomInfo');
+        this.connectionStatus = document.getElementById('connectionStatus');
+        this.playerBadge = document.getElementById('playerBadge');
+        this.gameModeSelect = document.getElementById('gameMode');
+        this.difficultySelect = document.getElementById('difficulty');
+        this.resetBtn = document.getElementById('resetBtn');
+        this.resetScoreBtn = document.getElementById('resetScoreBtn');
+        this.statusEl = document.getElementById('status');
+        this.multiplayerPanel = document.getElementById('multiplayerPanel');
+
+        this.cells.forEach((cell, index) => {
             cell.textContent = '';
             cell.classList.remove('x', 'o', 'taken');
             cell.addEventListener('click', () => this.playerMove(index));
         });
 
-        document.getElementById('resetBtn').addEventListener('click', () => this.resetGame());
-        document.getElementById('resetScoreBtn').addEventListener('click', () => this.resetScore());
-        document.getElementById('difficulty').addEventListener('change', (e) => {
+        this.gameModeSelect.value = this.gameMode;
+        this.gameModeSelect.addEventListener('change', (e) => this.handleGameModeChange(e.target.value));
+        this.createRoomBtn.addEventListener('click', () => this.createRoom());
+        this.joinRoomBtn.addEventListener('click', () => this.joinRoom());
+        this.resetBtn.addEventListener('click', () => this.resetGame());
+        this.resetScoreBtn.addEventListener('click', () => this.resetScore());
+        this.difficultySelect.value = this.difficulty;
+        this.difficultySelect.addEventListener('change', (e) => {
             this.difficulty = e.target.value;
-            this.resetGame();
+            if (this.gameMode === 'ai') {
+                this.resetBoard();
+            }
         });
 
+        this.updateUI();
         this.updateStatus();
     }
 
+    handleGameModeChange(mode) {
+        if (this.gameMode === mode) return;
+        this.gameMode = mode;
+        if (mode === 'remote') {
+            this.disconnectWebSocket();
+            this.resetBoard();
+            this.setConnectionStatus('Remote mode selected. Create or join a room.', 'warning');
+        } else {
+            this.disconnectWebSocket();
+            this.resetBoard();
+            this.setConnectionStatus('AI mode active.', 'success');
+        }
+        this.updateUI();
+    }
+
+    updateUI() {
+        const multiplayerVisible = this.gameMode === 'remote';
+        this.multiplayerPanel.style.display = multiplayerVisible ? 'block' : 'none';
+        this.difficultySelect.disabled = this.gameMode === 'remote';
+        this.playerBadge.textContent = this.isConnected && this.mySymbol ? `Your symbol: ${this.mySymbol}` : '';
+        this.roomInfo.textContent = this.roomCode ? `Room code: ${this.roomCode}` : 'Room code: —';
+    }
+
+    createRoom() {
+        const requestedCode = this.roomCodeInput.value.trim().toUpperCase();
+        const roomCode = requestedCode || this.generateRoomCode();
+        this.roomCodeInput.value = roomCode;
+        this.connectWebSocket('create', roomCode);
+    }
+
+    joinRoom() {
+        const roomCode = this.roomCodeInput.value.trim().toUpperCase();
+        if (!roomCode) {
+            this.setConnectionStatus('Enter a room code to join.', 'error');
+            return;
+        }
+        this.connectWebSocket('join', roomCode);
+    }
+
+    connectWebSocket(action, roomCode) {
+        if (this.socket) {
+            this.disconnectWebSocket();
+        }
+
+        this.setConnectionStatus('Connecting to remote server...', 'info');
+        this.socket = new WebSocket('ws://localhost:3000');
+
+        this.socket.onopen = () => {
+            this.sendSocket({ type: action, roomCode });
+        };
+
+        this.socket.onmessage = (event) => this.handleSocketMessage(event.data);
+        this.socket.onerror = () => this.setConnectionStatus('WebSocket error. Check the server.', 'error');
+        this.socket.onclose = () => {
+            this.isConnected = false;
+            this.setConnectionStatus('Disconnected from server.', 'error');
+            this.updateUI();
+        };
+    }
+
+    disconnectWebSocket() {
+        if (this.socket) {
+            this.socket.close();
+            this.socket = null;
+        }
+        this.isConnected = false;
+        this.roomCode = '';
+        this.mySymbol = null;
+        this.currentTurn = 'X';
+        this.movePending = false;
+        this.updateUI();
+    }
+
+    sendSocket(message) {
+        if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+            this.socket.send(JSON.stringify(message));
+        }
+    }
+
+    handleSocketMessage(rawData) {
+        let data;
+        try {
+            data = JSON.parse(rawData);
+        } catch {
+            return;
+        }
+
+        switch (data.type) {
+            case 'room_created':
+                this.roomCode = data.roomCode;
+                this.mySymbol = data.symbol;
+                this.currentTurn = data.currentTurn;
+                this.isConnected = true;
+                this.board = data.board.slice();
+                this.gameActive = true;
+                this.movePending = false;
+                this.updateUI();
+                this.refreshBoard();
+                this.setConnectionStatus(`Room ${data.roomCode} created. Waiting for opponent...`, 'warning');
+                this.updateStatus();
+                break;
+            case 'room_joined':
+                this.roomCode = data.roomCode;
+                this.mySymbol = data.symbol;
+                this.currentTurn = data.currentTurn;
+                this.isConnected = true;
+                this.board = data.board.slice();
+                this.gameActive = data.gameActive;
+                this.movePending = false;
+                this.updateUI();
+                this.refreshBoard();
+                this.setConnectionStatus(`Joined room ${data.roomCode}. Waiting for opponent...`, 'warning');
+                this.updateStatus();
+                break;
+            case 'room_ready':
+                this.isConnected = true;
+                this.board = data.board.slice();
+                this.currentTurn = data.currentTurn;
+                this.gameActive = data.gameActive;
+                this.movePending = false;
+                this.updateUI();
+                this.refreshBoard();
+                this.setConnectionStatus('Opponent connected. Ready to play.', 'success');
+                this.updateStatus();
+                break;
+            case 'move':
+                this.board = data.board.slice();
+                this.currentTurn = data.currentTurn;
+                this.gameActive = !data.gameOver;
+                this.movePending = false;
+                this.refreshBoard();
+                if (data.gameOver) {
+                    this.handleGameOver(data);
+                } else {
+                    this.updateStatus();
+                }
+                break;
+            case 'reset':
+                this.board = data.board.slice();
+                this.currentTurn = data.currentTurn;
+                this.gameActive = true;
+                this.movePending = false;
+                this.refreshBoard();
+                this.setConnectionStatus('Room reset. Ready for next round.', 'success');
+                this.updateStatus();
+                break;
+            case 'room_status':
+                this.movePending = false;
+                this.setConnectionStatus(data.message, data.status || 'info');
+                break;
+            case 'opponent_left':
+                this.isConnected = true;
+                this.gameActive = false;
+                this.refreshBoard();
+                this.setConnectionStatus('Opponent disconnected. Waiting for reconnection.', 'warning');
+                this.updateStatus();
+                break;
+            case 'error':
+                this.movePending = false;
+                this.setConnectionStatus(data.message || 'Remote error occurred.', 'error');
+                break;
+            default:
+                break;
+        }
+    }
+
+    handleGameOver(data) {
+        if (data.outcome === 'win') {
+            const message = data.winner === this.mySymbol ? 'You win! 🎉' : 'Opponent wins!';
+            this.endGame(message);
+        } else if (data.outcome === 'draw') {
+            this.endGame("It's a draw! 🤝");
+        } else {
+            this.endGame(data.message || 'Game over.');
+        }
+    }
+
     playerMove(index) {
-        if (!this.gameActive || this.board[index] !== '') return;
+        if (!this.gameActive) return;
+
+        if (this.gameMode === 'remote') {
+            this.remoteMove(index);
+            return;
+        }
+
+        if (this.board[index] !== '') return;
 
         this.board[index] = 'X';
         this.updateBoard(index, 'X');
@@ -47,8 +259,55 @@ class TicTacToe {
 
         this.gameActive = false;
         this.updateStatus('AI is thinking...');
-        
         setTimeout(() => this.aiMove(), 500);
+    }
+
+    remoteMove(index) {
+        if (!this.isConnected || !this.socket || this.socket.readyState !== WebSocket.OPEN) {
+            this.setConnectionStatus('Not connected to a room.', 'error');
+            return;
+        }
+
+        if (this.movePending) {
+            this.setConnectionStatus('Move in progress, please wait.', 'warning');
+            return;
+        }
+
+        if (this.currentTurn !== this.mySymbol) {
+            this.setConnectionStatus('Not your turn yet.', 'warning');
+            return;
+        }
+
+        if (this.board[index] !== '') return;
+
+        this.movePending = true;
+        this.sendSocket({ type: 'move', roomCode: this.roomCode, index });
+        this.updateStatus('Waiting for opponent...');
+    }
+
+    requestRemoteReset() {
+        if (this.gameMode === 'remote' && this.isConnected && this.socket && this.socket.readyState === WebSocket.OPEN) {
+            this.sendSocket({ type: 'reset', roomCode: this.roomCode });
+            return;
+        }
+        this.resetBoard();
+    }
+
+    resetGame() {
+        if (this.gameMode === 'remote') {
+            this.requestRemoteReset();
+            return;
+        }
+        this.resetBoard();
+    }
+
+    resetBoard() {
+        this.board = Array(9).fill('');
+        this.currentPlayer = 'X';
+        this.gameActive = true;
+        this.movePending = false;
+        this.refreshBoard();
+        this.updateStatus();
     }
 
     aiMove() {
@@ -119,18 +378,18 @@ class TicTacToe {
                 }
             }
             return bestScore;
-        } else {
-            let bestScore = Infinity;
-            for (let i = 0; i < board.length; i++) {
-                if (board[i] === '') {
-                    board[i] = 'X';
-                    const score = this.minimax(board, depth + 1, true);
-                    board[i] = '';
-                    bestScore = Math.min(score, bestScore);
-                }
-            }
-            return bestScore;
         }
+
+        let bestScore = Infinity;
+        for (let i = 0; i < board.length; i++) {
+            if (board[i] === '') {
+                board[i] = 'X';
+                const score = this.minimax(board, depth + 1, true);
+                board[i] = '';
+                bestScore = Math.min(score, bestScore);
+            }
+        }
+        return bestScore;
     }
 
     getRandomMove() {
@@ -185,38 +444,71 @@ class TicTacToe {
     }
 
     updateBoard(index, player) {
-        const cells = document.querySelectorAll('.cell');
-        cells[index].textContent = player;
-        cells[index].classList.add(player.toLowerCase(), 'taken');
+        const cell = this.cells[index];
+        cell.textContent = player;
+        cell.classList.add(player.toLowerCase(), 'taken');
+    }
+
+    refreshBoard() {
+        this.cells.forEach((cell, index) => {
+            const value = this.board[index];
+            cell.textContent = value;
+            cell.classList.remove('x', 'o', 'taken');
+            if (value) {
+                cell.classList.add(value.toLowerCase(), 'taken');
+            }
+        });
     }
 
     updateStatus(customMessage = null) {
-        const statusEl = document.getElementById('status');
-        statusEl.classList.remove('winner', 'loser', 'draw');
-        statusEl.textContent = customMessage || (this.gameActive ? 'Your Turn! (X)' : 'AI is thinking...');
+        this.statusEl.classList.remove('winner', 'loser', 'draw');
+
+        if (customMessage) {
+            this.statusEl.textContent = customMessage;
+            return;
+        }
+
+        if (this.gameMode === 'remote') {
+            if (!this.isConnected) {
+                this.statusEl.textContent = 'Connect to a room to begin.';
+                return;
+            }
+
+            if (!this.gameActive) {
+                this.statusEl.textContent = 'Game paused. Use New Game to reset.';
+                return;
+            }
+
+            this.statusEl.textContent = this.currentTurn === this.mySymbol
+                ? `Your turn (${this.mySymbol})`
+                : `Waiting for opponent (${this.currentTurn})`;
+            return;
+        }
+
+        this.statusEl.textContent = this.gameActive ? 'Your Turn! (X)' : 'AI is thinking...';
+    }
+
+    setConnectionStatus(message, statusType = 'info') {
+        this.connectionStatus.textContent = message;
+        this.connectionStatus.className = `connection-status ${statusType}`;
     }
 
     endGame(message) {
         this.gameActive = false;
-        const statusEl = document.getElementById('status');
-        statusEl.textContent = message;
-        
-        if (message.includes('win')) {
-            statusEl.classList.add('winner');
-        } else if (message.includes('AI wins')) {
-            statusEl.classList.add('loser');
+        this.statusEl.textContent = message;
+        this.statusEl.classList.remove('winner', 'loser', 'draw');
+
+        if (message.includes('draw')) {
+            this.statusEl.classList.add('draw');
+        } else if (message.includes('AI wins') || message.includes('Opponent wins')) {
+            this.statusEl.classList.add('loser');
         } else {
-            statusEl.classList.add('draw');
+            this.statusEl.classList.add('winner');
         }
 
-        this.updateScores();
-    }
-
-    resetGame() {
-        this.board = ['', '', '', '', '', '', '', '', ''];
-        this.currentPlayer = 'X';
-        this.gameActive = true;
-        this.initializeGame();
+        if (this.gameMode === 'ai') {
+            this.updateScores();
+        }
     }
 
     updateScores() {
@@ -244,9 +536,12 @@ class TicTacToe {
             this.updateScores();
         }
     }
+
+    generateRoomCode() {
+        return Math.random().toString(36).substring(2, 8).toUpperCase();
+    }
 }
 
-// Initialize the game when page loads
 document.addEventListener('DOMContentLoaded', () => {
     new TicTacToe();
 });
