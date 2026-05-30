@@ -37,5 +37,5 @@ jobs:
     - name: Deploy to Azure Web App
       uses: azure/webapps-deploy@v3
       with:
-        app-name: YOUR_WEBAPP_NAME
+        app-name: tic-tac-toe-app
         images: ${{ env.LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
